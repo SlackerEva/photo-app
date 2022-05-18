@@ -7,25 +7,28 @@ const results =[];
     .pipe(csv({}))
     .on('data', (data) => results.push(data))
     .on('end', () => {
-      results.forEach((result) => {
-        getPhoto(result);
+        getPhoto(results);
       });
-    });
+
 
 
   async function getPhoto(result) {
-
     const browser = await puppeteer.launch({headless:false});
     const page = await browser.newPage();
+    try {
+      for (let result of results) {
+        await page.goto('http://'+ result['Website (URL)']);
+    
+        await page.setViewport({
+          width: 1200,
+          height: 800
+        });
 
-    await page.goto('http://'+ result['Website (URL)']);
+        await page.screenshot({path: 'images/'+ result['Company name'] +'.png'});
 
-    await page.setViewport({
-      width: 1200,
-      height: 800
-    });
-
-    await page.screenshot({path: 'images/'+ result['Company name'] +'.png'});
-
-    await browser.close();
+      }
+    } catch(e) {
+      console.log(result + 'page is not working')
+    }
+    await browser.close();  
   };
