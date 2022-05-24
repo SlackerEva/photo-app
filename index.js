@@ -7,28 +7,38 @@ const results =[];
     .pipe(csv({}))
     .on('data', (data) => results.push(data))
     .on('end', () => {
-        getPhoto(results);
-      });
+      getPhoto(results);
+    });
 
 
-
-  async function getPhoto(result) {
+  async function getPhoto() {
     const browser = await puppeteer.launch({headless:false});
     const page = await browser.newPage();
-    try {
-      for (let result of results) {
-        await page.goto('http://'+ result['Website (URL)']);
-    
-        await page.setViewport({
-          width: 1200,
-          height: 800
+    let resultId = 0;
+    let writeStream = fs.createWriteStream('log.csv');
+    for (let result of results) {
+      try {
+        await page.goto('http://'+ result['Website (URL)'], {
+          waitUntil: "networkidle0",
+          timeout: 10000
         });
 
-        await page.screenshot({path: 'images/'+ result['Company name'] +'.png'});
+        await page.waitForSelector('footer');
+    
+        await page.setViewport({
+          width: 1920,
+          height: 1080
+        });
 
+        await page.screenshot({path: 'images/'+ result['Company name'] +'.jpeg'});
+
+        writeStream.write(resultId + ' : done!' + '\r\n');
+        resultId = resultId + 1;
+      } catch(e) {
+        writeStream.write(resultId + ' : page is not working '+ e + '\r\n');
+        resultId = resultId + 1;
       }
-    } catch(e) {
-      console.log(result + 'page is not working')
     }
+    writeStream.end();
     await browser.close();  
   };
