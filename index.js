@@ -23,7 +23,7 @@ const results =[];
           timeout: 10000
         });
 
-        await page.waitForSelector('footer');
+        //await page.waitForSelector('footer');
     
         await page.setViewport({
           width: 1920,
